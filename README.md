@@ -1,6 +1,6 @@
 # NexHaul Logistics
 
-A responsive static website for **NexHaul Logistics**, a fictional freight and logistics portfolio concept. It can be deployed directly to GitHub Pages without a build step.
+A responsive static website for **NexHaul Logistics**, a fictional freight and logistics portfolio concept.
 
 ## Project structure
 
