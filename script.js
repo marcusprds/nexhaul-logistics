@@ -1,4 +1,4 @@
-const FORM_ENDPOINT = "";
+const GOOGLE_FORMS_HOST = "docs.google.com";
 const menuToggle = document.querySelector("[data-menu-toggle]");
 const navigation = document.querySelector("[data-nav]");
 const menuOverlay = document.querySelector("[data-menu-overlay]");
@@ -129,21 +129,36 @@ document.querySelectorAll("[data-form-tab-link]").forEach((link) => {
 document.querySelectorAll("[data-set-service]").forEach((link) => {
   link.addEventListener("click", () => {
     const select = document.querySelector("[data-service-select]");
-    if (select) select.value = link.dataset.setService;
+    const serviceLabels = {
+      ftl: "Full truckload",
+      ltl: "LTL freight",
+      expedited: "Expedited",
+      drayage: "Drayage",
+      "cross-border": "Cross-border",
+      managed: "Managed transportation"
+    };
+    if (select) select.value = serviceLabels[link.dataset.setService] || link.dataset.setService;
   });
 });
 
 document.querySelectorAll("[data-set-industry]").forEach((link) => {
   link.addEventListener("click", () => {
     const input = document.querySelector("[data-industry-input]");
-    if (input) input.value = link.dataset.setIndustry;
+    const industryLabels = {
+      manufacturing: "Manufacturing",
+      "food-beverage": "Food & beverage",
+      "retail-cpg": "Retail & CPG",
+      automotive: "Automotive"
+    };
+    if (input) input.value = industryLabels[link.dataset.setIndustry] || link.dataset.setIndustry;
   });
 });
 
 document.querySelectorAll("[data-set-topic]").forEach((link) => {
   link.addEventListener("click", () => {
     const select = document.querySelector("[data-topic-select]");
-    if (select) select.value = link.dataset.setTopic;
+    const topicLabels = { careers: "Careers", partnership: "Partnership", media: "Media inquiry", other: "Other" };
+    if (select) select.value = topicLabels[link.dataset.setTopic] || link.dataset.setTopic;
   });
 });
 
@@ -182,6 +197,7 @@ function validateForm(form) {
 }
 
 document.querySelectorAll("[data-inquiry-form]").forEach((form) => {
+  form.noValidate = true;
   form.querySelectorAll("input, select, textarea").forEach((control) => {
     control.addEventListener("input", () => clearFieldError(control));
     control.addEventListener("change", () => clearFieldError(control));
@@ -198,15 +214,15 @@ document.querySelectorAll("[data-inquiry-form]").forEach((form) => {
     const button = form.querySelector("button[type='submit']");
     const originalLabel = button.innerHTML;
     button.disabled = true;
-    button.textContent = FORM_ENDPOINT ? "Sending…" : "Validated";
+    button.textContent = "Sending…";
 
     try {
-      if (FORM_ENDPOINT) {
-        const payload = new FormData(form);
-        payload.append("inquiryType", form.dataset.formType || "general");
-        const response = await fetch(FORM_ENDPOINT, { method: "POST", body: payload, headers: { Accept: "application/json" } });
-        if (!response.ok) throw new Error("Submission failed");
+      const submissionUrl = new URL(form.action);
+      if (submissionUrl.hostname !== GOOGLE_FORMS_HOST || !submissionUrl.pathname.endsWith("/formResponse")) {
+        throw new Error("Unexpected form destination");
       }
+      HTMLFormElement.prototype.submit.call(form);
+      await new Promise((resolve) => window.setTimeout(resolve, 700));
       if (success) success.hidden = false;
       form.reset();
       success?.scrollIntoView({ behavior: "smooth", block: "nearest" });
